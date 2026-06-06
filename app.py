@@ -47,31 +47,33 @@ if user_type == "👑 စာရင်းကိုင် (Admin)":
     st.title("👑 Admin Dashboard")
     tab1, tab2, tab3, tab4, tab5 = st.tabs(["📋 စာရင်းများ", "📦 ပစ္စည်းများ", "👥 Users များ", "✅ အတည်ပြုပြီးသား", "📊 အစီရင်ခံစာ"])
     
-    # ===== TAB 1 =====
-    with tab1:
-        st.subheader("⏳ အတည်မပြုရသေးသော စာရင်းများ")
-        submissions = load_submissions()
-        pending = submissions[submissions["status"] == "pending"]
-        if pending.empty:
-            st.info("စာရင်းများ မရှိသေးပါ")
-        else:
-            for idx, row in pending.iterrows():
-                with st.expander(f"📄 #{row['submission_id']} - {row['username']} - {row['location']}"):
-                    st.write(f"**ပစ္စည်း:** {row['item_name']}")
-                    st.write(f"**Size:** {row['size']}")
-                    st.write(f"**အရေအတွက်:** {row['quantity']}")
-                    st.write(f"**တစ်ခုဈေး:** {row['unit_price']} ကျပ်")
-                    st.write(f"**စုစုပေါင်း:** {row['total_price']} ကျပ်")
-                    st.write(f"**တင်ချိန်:** {row['timestamp']}")
-                    col1, col2 = st.columns(2)
-                    if col1.button("✅ အတည်ပြုမယ်", key=f"approve_{idx}"):
-                        submissions.loc[submissions["submission_id"] == row["submission_id"], ["status", "approved_by", "approved_date"]] = ["approved", "Admin", datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-                        save_submissions(submissions)
-                        st.rerun()
-                    if col2.button("❌ ပယ်ဖျက်မယ်", key=f"reject_{idx}"):
-                        submissions = submissions[submissions["submission_id"] != row["submission_id"]]
-                        save_submissions(submissions)
-                        st.rerun()
+# ===== TAB 1 =====
+with tab1:
+    st.subheader("⏳ အတည်မပြုရသေးသော စာရင်းများ")
+    submissions = load_submissions()
+    pending = submissions[submissions["status"] == "pending"]
+    if pending.empty:
+        st.info("စာရင်းများ မရှိသေးပါ")
+    else:
+        for idx, row in pending.iterrows():
+            with st.expander(f"📄 #{row['submission_id']} - {row['username']} - {row['location']}"):
+                st.write(f"**ပစ္စည်း:** {row['item_name']}")
+                st.write(f"**Size:** {row['size']}")
+                st.write(f"**အရေအတွက်:** {row['quantity']}")
+                st.write(f"**တစ်ခုဈေး:** {row['unit_price']} ကျပ်")
+                st.write(f"**စုစုပေါင်း:** {row['total_price']} ကျပ်")
+                st.write(f"**တင်ချိန်:** {row['timestamp']}")
+                col1, col2 = st.columns(2)
+                if col1.button("✅ အတည်ပြုမယ်", key=f"approve_{idx}"):
+                    submissions.loc[submissions["submission_id"] == row["submission_id"], "status"] = "approved"
+                    submissions.loc[submissions["submission_id"] == row["submission_id"], "approved_by"] = "Admin"
+                    submissions.loc[submissions["submission_id"] == row["submission_id"], "approved_date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    save_submissions(submissions)
+                    st.rerun()
+                if col2.button("❌ ပယ်ဖျက်မယ်", key=f"reject_{idx}"):
+                    submissions = submissions[submissions["submission_id"] != row["submission_id"]]
+                    save_submissions(submissions)
+                    st.rerun()
     
     # ===== TAB 2 =====
     with tab2:
