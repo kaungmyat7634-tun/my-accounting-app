@@ -1,4 +1,4 @@
-import streamlit as st
+mport streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
@@ -67,11 +67,11 @@ if user_type == "👑 စာရင်းကိုင် (Admin)":
                     if col1.button("✅ အတည်ပြုမယ်", key=f"approve_{idx}"):
                         submissions.loc[submissions["submission_id"] == row["submission_id"], ["status", "approved_by", "approved_date"]] = ["approved", "Admin", datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
                         save_submissions(submissions)
-                        st.experimental_rerun()
+                        st.rerun()
                     if col2.button("❌ ပယ်ဖျက်မယ်", key=f"reject_{idx}"):
                         submissions = submissions[submissions["submission_id"] != row["submission_id"]]
                         save_submissions(submissions)
-                        st.experimental_rerun()
+                        st.rerun()
     
     # ===== TAB 2 =====
     with tab2:
@@ -83,14 +83,14 @@ if user_type == "👑 စာရင်းကိုင် (Admin)":
             new_price = col2.number_input("ဈေးနှုန်း (ကျပ်)", min_value=0)
             if st.form_submit_button("➕ ထည့်မယ်") and new_item:
                 save_items(pd.concat([items, pd.DataFrame({"item_name": [new_item], "unit_price": [new_price]})], ignore_index=True))
-                st.experimental_rerun()
+                st.rerun()
         for idx, row in items.iterrows():
             col1, col2, col3 = st.columns([3, 2, 1])
             col1.write(f"**{row['item_name']}**")
             col2.write(f"{row['unit_price']} ကျပ်")
             if col3.button("🗑 ဖျက်", key=f"del_item_{idx}"):
                 save_items(items.drop(idx))
-                st.experimental_rerun()
+                st.rerun()
     
     # ===== TAB 3 =====
     with tab3:
@@ -103,7 +103,7 @@ if user_type == "👑 စာရင်းကိုင် (Admin)":
             is_active = col3.checkbox("Active", True)
             if st.form_submit_button("➕ User ထည့်မယ်") and new_username:
                 save_users(pd.concat([users, pd.DataFrame({"username": [new_username], "location": [new_location], "active": [is_active]})], ignore_index=True))
-                st.experimental_rerun()
+                st.rerun()
         for idx, row in users.iterrows():
             col1, col2, col3, col4 = st.columns([2, 2, 1, 1])
             col1.write(row["username"])
@@ -112,10 +112,10 @@ if user_type == "👑 စာရင်းကိုင် (Admin)":
             if new_status != row["active"]:
                 users.loc[idx, "active"] = new_status
                 save_users(users)
-                st.experimental_rerun()
+                st.rerun()
             if col4.button("🗑 ဖျက်", key=f"del_user_{idx}"):
                 save_users(users.drop(idx))
-                st.experimental_rerun()
+                st.rerun()
     
     # ===== TAB 4 =====
     with tab4:
