@@ -1,23 +1,14 @@
 import streamlit as st
 import pandas as pd
 import os
+from datetime import datetime
 
 # Files for data storage
-USERS_FILE = "users.csv"
 TRANSACTIONS_FILE = "transactions.csv"
 
-# Initialize files if they don't exist
-if not os.path.exists(USERS_FILE):
-    pd.DataFrame(columns=["username", "password", "role"]).to_csv(USERS_FILE, index=False)
-
+# Initialize transactions file if it doesn't exist
 if not os.path.exists(TRANSACTIONS_FILE):
     pd.DataFrame(columns=["date", "item", "price", "type", "username"]).to_csv(TRANSACTIONS_FILE, index=False)
-
-def load_users():
-    return pd.read_csv(USERS_FILE)
-
-def save_users(df):
-    df.to_csv(USERS_FILE, index=False)
 
 def load_transactions():
     return pd.read_csv(TRANSACTIONS_FILE)
@@ -25,93 +16,132 @@ def load_transactions():
 def save_transactions(df):
     df.to_csv(TRANSACTIONS_FILE, index=False)
 
-# Main Application
-st.title("💰 စာရင်းကိုင် Application")
+# Pre-defined Accounts
+ACCOUNTS = {
+    "admin": {"password": "admin123", "role": "Admin"},
+    "user": {"password": "user123", "role": "User"}
+}
 
+# App Layout Configuration
+st.set_page_config(page_title="စာရင်းကိုင်စနစ်", page_icon="💰", layout="wide")
+
+# Session State Initialization
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.username = ""
     st.session_state.role = ""
 
+# --- LOGIN SCREEN ---
 if not st.session_state.logged_in:
-    menu = ["ဝင်ရောက်မည်", "အကောင့်သစ်ဖွင့်မည်"]
-    choice = st.sidebar.selectbox("မီနူး", menu)
+    st.markdown("<h2 style='text-align: center;'>💰 စာရင်းကိုင် Application</h2>", unsafe_index=True)
     
-    if choice == "ဝင်ရောက်မည်":
-        st.subheader("🔑 အကောင့်ဝင်ရန်")
-        username = st.text_input("အသုံးပြုသူအမည် (Username)")
-        password = st.text_input("စကားဝှက် (Password)", type="password")
-        if st.button("ဝင်မည်"):
-            users = load_users()
-            user = users[(users["username"] == username) & (users["password"] == password)]
-            if not user.empty:
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.subheader("🔑 စနစ်အတွင်းသို့ ဝင်ရောက်ရန်")
+        username = st.text_input("အသုံးပြုသူအမည် (Username)", placeholder="ဥပမာ - admin")
+        password = st.text_input("စကားဝှက် (Password)", type="password", placeholder="ဥပမာ - admin123")
+        
+        if st.button("ဝင်ရောက်မည်", use_container_width=True):
+            if username in ACCOUNTS and ACCOUNTS[username]["password"] == password:
                 st.session_state.logged_in = True
                 st.session_state.username = username
-                st.session_state.role = user.iloc[0]["role"]
-                st.success(f"{username} အဖြစ် အောင်မြင်စွာ ဝင်ရောက်ပြီးပါပြီ။")
+                st.session_state.role = ACCOUNTS[username]["role"]
+                st.success("ဝင်ရောက်မှု အောင်မြင်ပါသည်။")
                 st.rerun()
             else:
                 st.error("အသုံးပြုသူအမည် သို့မဟုတ် စကားဝှက် မှားယွင်းနေပါသည်။")
-                
-    elif choice == "အကောင့်သစ်ဖွင့်မည်":
-        st.subheader("📝 အကောင့်အသစ်ဆောက်ရန်")
-        new_user = st.text_input("အသုံးပြုသူအမည်အသစ်")
-        new_password = st.text_input("စကားဝှက်အသစ်", type="password")
-        role = st.selectbox("ရာထူး/အဆင့်", ["ဝန်ထမ်း (User)", "စာရင်းကိုင် (Admin)"])
-        
-        if st.button("အကောင့်ဖွင့်မည်"):
-            users = load_users()
-            if new_user in users["username"].values:
-                st.error("ဤအသုံးပြုသူအမည် ရှိနှင့်ပြီးသားဖြစ်ပါသည်။")
-            elif new_user == "" or new_password == "":
-                st.error("ကျေးဇူးပြု၍ အချက်အလက်များ ပြည့်စုံစွာဖြည့်ပါ။")
-            else:
-                new_row = pd.DataFrame([{"username": new_user, "password": new_password, "role": role}])
-                users = pd.concat([users, new_row], ignore_index=True)
-                save_users(users)
-                st.success("အကောင့်အသစ် အောင်မြင်စွာ ဆောက်လုပ်ပြီးပါပြီ။ ဘေးဘောင်မှ 'ဝင်ရောက်မည်' ကိုရွေးချယ်ပါ။")
 
+# --- MAIN APP (LOGGED IN) ---
 else:
-    st.sidebar.write(f"👤 လူကြီးမင်း: {st.session_state.username} ({st.session_state.role})")
-    if st.sidebar.button("အကောင့်ထွက်မည်"):
+    # Sidebar Navigation & Logout
+    st.sidebar.title("📌 ထိန်းချုပ်ခန်း")
+    st.sidebar.write(f"👤 အသုံးပြုသူ: **{st.session_state.username}**")
+    st.sidebar.write(f"🎖️ ရာထူးဆင့်အတန်း: `{st.session_state.role}`")
+    
+    st.sidebar.markdown("---")
+    if st.sidebar.button("🚪 အကောင့်ထွက်မည်", use_container_width=True):
         st.session_state.logged_in = False
         st.session_state.username = ""
         st.session_state.role = ""
         st.rerun()
 
-    # Admin View
-    if st.session_state.role in ["စာရင်းကိုင် (Admin)", "Admin"]:
-        st.subheader("📊 စာရင်းချုပ်ကြည့်ရန် (Admin Only)")
+    # ==========================================
+    # INTERFACE 1: ADMIN VIEW (စာရင်းကိုင်/အရာရှိ မီနူး)
+    # ==========================================
+    if st.session_state.role == "Admin":
+        st.title("📊 စာရင်းကိုင်ချုပ် မျက်နှာပြင် (Admin Interface)")
+        
+        # Load Data
         tx_df = load_transactions()
-        if tx_df.empty:
-            st.info("လက်ရှိတွင် မည်သည့်စာရင်းမှ မရှိသေးပါ။")
-        else:
-            st.dataframe(tx_df)
+        
+        # Dashboard Overview Cards
+        if not tx_df.empty:
             total_income = tx_df[tx_df["type"] == "ရရန်"]["price"].sum()
             total_expense = tx_df[tx_df["type"] == "ပေးရန်"]["price"].sum()
-            st.write(f"📈 **စုစုပေါင်း ရရန်:** {total_income} ကျပ်")
-            st.write(f"📉 **စုစုပေါင်း ပေးရန်:** {total_expense} ကျပ်")
-            st.write(f"⚖️ **လက်ကျန်ငွေ:** {total_income - total_expense} ကျပ်")
+            net_balance = total_income - total_expense
             
-            if st.button("📝 စာရင်းအားလုံးကို ဖျက်ပစ်မည်"):
-                pd.DataFrame(columns=["date", "item", "price", "type", "username"]).to_csv(TRANSACTIONS_FILE, index=False)
-                st.success("စာရင်းအားလုံးကို ဖျက်သိမ်းပြီးပါပြီ။")
-                st.rerun()
-
-    # User View (Add Transactions)
-    st.subheader("📥 စာရင်းအသစ်သွင်းရန်")
-    date = st.date_input("နေ့စွဲ")
-    item = st.text_input("ပစ္စည်း/အကြောင်းအရာ")
-    price = st.number_input("ဈေးနှုန်း (ကျပ်)", min_value=0, step=1)
-    tx_type = st.selectbox("အမျိုးအစား", ["ရရန်", "ပေးရန်"])
-    
-    if st.button("➕ ထည့်မည်"):
-        if item == "" or price == 0:
-            st.error("ကျေးဇူးပြု၍ အကြောင်းအရာနှင့် ဈေးနှုန်းကို သေချာစွာဖြည့်စွက်ပါ။")
+            c1, c2, c3 = st.columns(3)
+            c1.metric(label="📈 စုစုပေါင်း ရရန်ငွေ", value=f"{total_income:,} ကျပ်")
+            c2.metric(label="📉 စုစုပေါင်း ပေးရန်ငွေ", value=f"{total_expense:,} ကျပ်")
+            c3.metric(label="⚖️ အသားတင် လက်ကျန်ငွေ", value=f"{net_balance:,} ကျပ်")
+            
+            st.markdown("---")
+            
+            # Data Table View
+            st.subheader("📝 ရရှိ/ပေးရန် စာရင်းဇယားချုပ်")
+            st.dataframe(tx_df, use_container_width=True)
+            
+            # Action Controls
+            st.markdown("### ⚙️ စနစ်ထိန်းချုပ်မှု")
+            col_del1, col_del2 = st.columns([1, 3])
+            with col_del1:
+                if st.button("❌ စာရင်းအားလုံးကို ဖျက်ပစ်မည်", type="primary"):
+                    pd.DataFrame(columns=["date", "item", "price", "type", "username"]).to_csv(TRANSACTIONS_FILE, index=False)
+                    st.success("စာရင်းအားလုံးကို အောင်မြင်စွာ ဖျက်သိမ်းပြီးပါပြီ။")
+                    st.rerun()
         else:
-            tx_df = load_transactions()
-            new_row = pd.DataFrame([{"date": str(date), "item": item, "price": price, "type": tx_type, "username": st.session_state.username}])
-            tx_df = pd.concat([tx_df, new_row], ignore_index=True)
-            save_transactions(tx_df)
-            st.success("စာရင်းသွင်းခြင်း အောင်မြင်ပါသည်။")
-            st.rerun()
+            st.info("📊 လက်ရှိတွင် မည်သည့်ဝန်ထမ်းမှ စာရင်းသွင်းထားခြင်း မရှိသေးပါ။")
+
+    # ==========================================
+    # INTERFACE 2: USER VIEW (ဝန်ထမ်း စာရင်းသွင်း မီနူး)
+    # ==========================================
+    else:
+        st.title("📥 ဝန်ထမ်း စာရင်းသွင်းမျက်နှာပြင် (User Interface)")
+        st.write("နေ့စဉ် ရရန်/ပေးရန် စာရင်းများကို အောက်ပါပုံစံတွင် တိကျစွာ ဖြည့်စွက်ပေးပါ။")
+        
+        st.markdown("---")
+        
+        # Entry Form
+        with st.form(key="transaction_form"):
+            date = st.date_input("📆 နေ့စွဲ", value=datetime.today())
+            item = st.text_input("📦 ပစ္စည်း / အကြောင်းအရာ", placeholder="ဥပမာ - ရုံးသုံးစက္ကူဝယ်ယူခြင်း")
+            price = st.number_input("💵 ဈေးနှုန်း (ကျပ်ငွေဖြင့်)", min_value=0, step=100)
+            tx_type = st.selectbox("🔄 အမျိုးအစား ခွဲခြားခြင်း", ["ရရန်", "ပေးရန်"])
+            
+            submit_button = st.form_submit_with_suppress_with_view_ids("➕ စာရင်းထဲသို့ ထည့်သွင်းမည်")
+            
+            if submit_button:
+                if item.strip() == "" or price == 0:
+                    st.error("⚠️ ကျေးဇူးပြု၍ အကြောင်းအရာနှင့် ဈေးနှုန်းကို သေသေချာချာ ဖြည့်စွက်ပေးပါ။")
+                else:
+                    tx_df = load_transactions()
+                    new_row = pd.DataFrame([{
+                        "date": str(date),
+                        "item": item,
+                        "price": price,
+                        "type": tx_type,
+                        "username": st.session_state.username
+                    }])
+                    tx_df = pd.concat([tx_df, new_row], ignore_index=True)
+                    save_transactions(tx_df)
+                    st.success(f"✅ '{item}' အတွက် စာရင်းသွင်းခြင်း အောင်မြင်ပါသည်။")
+        
+        # User's Own View (Show entries made by this user today)
+        st.markdown("---")
+        st.subheader("🕒 မိမိသွင်းထားသော စာရင်းများ")
+        all_tx = load_transactions()
+        user_tx = all_tx[all_tx["username"] == st.session_state.username]
+        if not user_tx.empty:
+            st.dataframe(user_tx, use_container_width=True)
+        else:
+            st.caption("ယနေ့အတွက် မည်သည့်စာရင်းမှ မသွင်းရသေးပါ။")
