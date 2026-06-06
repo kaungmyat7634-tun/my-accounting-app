@@ -75,11 +75,11 @@ if user_type == "👑 စာရင်းကိုင် (Admin)":
                         submissions.loc[submissions["submission_id"] == row["submission_id"], "approved_by"] = "Admin"
                         submissions.loc[submissions["submission_id"] == row["submission_id"], "approved_date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         save_submissions(submissions)
-                        st.experimental_rerun()
+                        st.rerun()
                     if col2.button("❌ ပယ်ဖျက်မယ်", key=f"reject_{idx}"):
                         submissions = submissions[submissions["submission_id"] != row["submission_id"]]
                         save_submissions(submissions)
-                        st.experimental_rerun()
+                        st.rerun()
     
     # ===== TAB 2 =====
     with tab2:
@@ -93,7 +93,7 @@ if user_type == "👑 စာရင်းကိုင် (Admin)":
                 new_row = pd.DataFrame({"item_name": [new_item], "unit_price": [new_price]})
                 items = pd.concat([items, new_row], ignore_index=True)
                 save_items(items)
-                st.experimental_rerun()
+                st.rerun()
         st.write("---")
         for idx, row in items.iterrows():
             col1, col2, col3 = st.columns([3, 2, 1])
@@ -102,7 +102,7 @@ if user_type == "👑 စာရင်းကိုင် (Admin)":
             if col3.button("🗑 ဖျက်", key=f"del_item_{idx}"):
                 items = items.drop(idx)
                 save_items(items)
-                st.experimental_rerun()
+                st.rerun()
     
     # ===== TAB 3 =====
     with tab3:
@@ -117,7 +117,7 @@ if user_type == "👑 စာရင်းကိုင် (Admin)":
                 new_row = pd.DataFrame({"username": [new_username], "location": [new_location], "active": [is_active]})
                 users = pd.concat([users, new_row], ignore_index=True)
                 save_users(users)
-                st.experimental_rerun()
+                st.rerun()
         st.write("---")
         for idx, row in users.iterrows():
             col1, col2, col3, col4 = st.columns([2, 2, 1, 1])
@@ -127,11 +127,11 @@ if user_type == "👑 စာရင်းကိုင် (Admin)":
             if new_status != row["active"]:
                 users.loc[idx, "active"] = new_status
                 save_users(users)
-                st.experimental_rerun()
+                st.rerun()
             if col4.button("🗑 ဖျက်", key=f"del_user_{idx}"):
                 users = users.drop(idx)
                 save_users(users)
-                st.experimental_rerun()
+                st.rerun()
     
     # ===== TAB 4 =====
     with tab4:
